@@ -1,0 +1,84 @@
+{
+  "name": "shoe-shop-management-offline",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "dev:vite": "vite",
+    "dev:electron": "tsup --watch",
+    "electron:start": "wait-on http://localhost:5173 && electron .",
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\" \"npm run electron:start\"",
+    "build:electron": "tsup",
+    "build": "tsc -b && vite build && npm run build:electron",
+    "pack": "npm run build && electron-packager . \"Shoe Shop Management System\" --platform=win32 --arch=x64 --out=release --overwrite",
+    "dist": "npm run build && electron-builder",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "postinstall": "prisma skills sync || exit 0"
+  },
+  "description": "Offline Shoe Shop Management & POS System",
+  "author": "StepStyle",
+  "build": {
+    "appId": "com.stepstyle.shoeshop",
+    "productName": "Shoe Shop Management System",
+    "npmRebuild": false,
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/.prisma/**/*",
+      "node_modules/@prisma/client/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "dev.db",
+      "package.json",
+      "node_modules/.prisma/**/*",
+      "node_modules/@prisma/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "@prisma/adapter-better-sqlite3": "^7.10.0",
+    "@prisma/adapter-libsql": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^1.41.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "recharts": "^3.10.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "concurrently": "^10.0.5",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "eslint": "^10.9.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.4",
+    "globals": "^17.11.0",
+    "prisma": "^7.10.0",
+    "tsup": "^8.5.1",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.67.0",
+    "vite": "^8.2.2",
+    "wait-on": "^9.1.0"
+  }
+}

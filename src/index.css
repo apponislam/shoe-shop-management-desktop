@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    border-color: #cbd5e1;
+  }
+  body {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+  }
+}
+
+/* Global Light Mode CSS Rules */
+html, body {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Map dark container class names across all pages to Light Mode panels */
+.bg-slate-950, .bg-zinc-950, .bg-black {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.bg-slate-900, .bg-zinc-900 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.bg-slate-800, .bg-zinc-800 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.bg-slate-900\/50, .bg-slate-950\/50, .bg-zinc-900\/50 {
+  background-color: #f1f5f9 !important;
+}
+
+.border-slate-800, .border-slate-700, .border-zinc-800, .border-zinc-700, .border-indigo-500\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Neutralize colorful text accents */
+.text-indigo-400, .text-emerald-400, .text-blue-400, .text-purple-400, .text-amber-400 {
+  color: #334155 !important;
+}
+
+/* Contrast text overrides */
+.text-white {
+  color: #0f172a !important;
+}
+
+.text-slate-400, .text-slate-300, .text-zinc-400, .text-zinc-300 {
+  color: #64748b !important;
+}
+
+.text-slate-500, .text-zinc-500 {
+  color: #475569 !important;
+}
+
+/* Inputs & selects */
+input, select, textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Solid dark action buttons retain white text */
+button.bg-slate-900,
+button.bg-black,
+button.bg-indigo-600,
+button.bg-emerald-600 {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+button.bg-slate-900 *,
+button.bg-black *,
+button.bg-indigo-600 *,
+button.bg-emerald-600 * {
+  color: #ffffff !important;
+}
+
+/* Active navigation badge visibility rule */
+button.bg-slate-900 span.bg-white,
+button.bg-black span.bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Thermal Printable Receipt Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    background: #ffffff;
+    color: #000000;
+  }
+}

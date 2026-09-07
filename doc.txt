@@ -1,0 +1,1004 @@
+# Shoe Shop Management — Development Prompt
+
+I am building a **Windows offline desktop Shoe Shop Management / POS application**.
+
+The application must work completely offline. There should be **no Express backend, no cloud API, no MongoDB, and no PostgreSQL server**.
+
+## Technology Stack
+
+Use exactly:
+
+* Electron
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* Lucide React
+* Recharts
+* Prisma ORM
+* SQLite
+* Electron IPC
+* Secure Electron preload
+* electron-builder
+* ESLint
+
+Architecture:
+
+```text
+React + TypeScript + Vite
+        ↓
+      Electron
+        ↓
+Electron Main Process
+        ↓
+      Prisma
+        ↓
+      SQLite
+```
+
+React must **never import Prisma directly**.
+
+Use:
+
+```text
+React
+  ↓
+preload.ts
+  ↓
+Electron IPC
+  ↓
+main.ts
+  ↓
+Prisma
+  ↓
+SQLite
+```
+
+Use `contextIsolation: true` and `nodeIntegration: false`.
+
+---
+
+# Development Order
+
+Build the application strictly in this order.
+
+## Step 1 — Electron Setup
+
+Configure Electron with the existing Vite React TypeScript project.
+
+Create:
+
+```text
+electron/
+├── main.ts
+└── preload.ts
+```
+
+Configure:
+
+* Electron main process
+* Secure preload
+* BrowserWindow
+* Development mode
+* Production mode
+* Vite integration
+* Electron development scripts
+* electron-builder configuration
+
+The React application must open inside Electron successfully.
+
+Do not move to the next step until Electron works correctly.
+
+---
+
+# Step 2 — Electron ↔ Prisma
+
+Connect the renderer to the Electron main process using IPC.
+
+Create a clean IPC architecture.
+
+Example:
+
+```text
+React
+  ↓
+window.electronAPI
+  ↓
+preload.ts
+  ↓
+ipcRenderer
+  ↓
+main.ts
+  ↓
+Prisma
+```
+
+Expose only required APIs through `contextBridge`.
+
+Do not expose unrestricted Node.js or Electron APIs to React.
+
+Create a scalable structure so future modules can have APIs such as:
+
+```text
+products
+categories
+brands
+sizes
+colors
+stock
+purchases
+sales
+customers
+suppliers
+expenses
+reports
+settings
+backup
+```
+
+---
+
+# Step 3 — SQLite + Prisma Database
+
+Use Prisma ORM with SQLite.
+
+Database URL:
+
+```env
+DATABASE_URL="file:./dev.db"
+```
+
+Use the existing Prisma schema and migrations.
+
+Important:
+
+* Do not replace Prisma with Drizzle.
+* Do not add MongoDB.
+* Do not add PostgreSQL.
+* Do not create an Express backend.
+* Keep database operations inside Electron's main process.
+
+Run the required Prisma migration and generate Prisma Client.
+
+Create a clean database/service layer.
+
+---
+
+# Step 4 — Dashboard + Application Layout
+
+Build the main application shell.
+
+Layout:
+
+```text
+┌──────────────────────────────────────────┐
+│ Header                                   │
+├──────────────┬───────────────────────────┤
+│ Sidebar      │                           │
+│              │        Page Content       │
+│ Dashboard    │                           │
+│ Products     │                           │
+│ Stock        │                           │
+│ Purchases    │                           │
+│ POS / Sales  │                           │
+│ Customers    │                           │
+│ Suppliers    │                           │
+│ Expenses     │                           │
+│ Reports      │                           │
+│ Settings     │                           │
+└──────────────┴───────────────────────────┘
+```
+
+Use shadcn/ui components and Lucide icons.
+
+Dashboard should contain:
+
+* Today's sales
+* Today's purchases
+* Today's profit
+* Total products
+* Total stock
+* Low-stock products
+* Customer due
+* Supplier due
+* Recent sales
+* Sales chart
+* Purchase chart
+* Profit chart
+
+Use Recharts for charts.
+
+Keep the UI clean, professional, modern, and suitable for a real retail shop.
+
+---
+
+# Step 5 — Products + Variants
+
+Create complete product management.
+
+Product example:
+
+```text
+Nike Air Max 270
+
+Black / 40
+Black / 41
+Black / 42
+White / 40
+White / 41
+```
+
+Product fields:
+
+* Name
+* Description
+* Category
+* Brand
+* Image
+* SKU
+* Active status
+
+Variant fields:
+
+* Size
+* Color
+* SKU
+* Barcode
+* Purchase price
+* Selling price
+* Stock
+* Minimum stock
+* Active status
+
+Also create management screens for:
+
+```text
+Categories
+Brands
+Sizes
+Colors
+```
+
+Support:
+
+* Create
+* Edit
+* View
+* Deactivate
+* Search
+* Filter
+* Pagination where appropriate
+
+---
+
+# Step 6 — Stock Management
+
+Implement proper inventory management.
+
+Stock must automatically change when transactions occur.
+
+```text
+Purchase
+    ↓
+Stock +
+
+Sale
+    ↓
+Stock -
+
+Sale Return
+    ↓
+Stock +
+
+Purchase Return
+    ↓
+Stock -
+
+Damage
+    ↓
+Stock -
+
+Adjustment
+    ↓
+Stock +/- 
+```
+
+Every stock change must create a `StockMovement`.
+
+Display:
+
+```text
+Date
+Product
+Variant
+Movement Type
+Quantity
+Previous Stock
+New Stock
+User
+Reference
+```
+
+Never silently modify stock without recording a stock movement.
+
+Add:
+
+* Current stock
+* Low stock
+* Stock history
+* Stock adjustment
+* Stock valuation
+
+---
+
+# Step 7 — Purchases
+
+Create a complete purchase system.
+
+Flow:
+
+```text
+Select Supplier
+      ↓
+Create Purchase
+      ↓
+Add Products
+      ↓
+Select Variant
+      ↓
+Quantity
+      ↓
+Purchase Price
+      ↓
+Calculate Total
+      ↓
+Payment
+      ↓
+Save Purchase
+      ↓
+Increase Stock
+```
+
+Support:
+
+* Purchase invoice number
+* Supplier
+* Multiple items
+* Quantity
+* Purchase price
+* Discount
+* Total
+* Paid amount
+* Due amount
+* Payment method
+* Notes
+* Purchase date
+
+When a purchase is completed:
+
+```text
+Purchase
+   ↓
+PurchaseItem
+   ↓
+Stock +
+   ↓
+StockMovement
+```
+
+Update supplier due correctly.
+
+---
+
+# Step 8 — POS / Sales
+
+Build the main POS interface.
+
+The POS must be fast and suitable for a physical shoe shop.
+
+Flow:
+
+```text
+Scan Barcode
+     ↓
+Find Product Variant
+     ↓
+Add To Cart
+     ↓
+Quantity
+     ↓
+Discount
+     ↓
+Customer
+     ↓
+Payment
+     ↓
+Complete Sale
+     ↓
+Stock -
+     ↓
+Invoice
+```
+
+Support:
+
+* Barcode scanner
+* Product search
+* Barcode search
+* Variant selection
+* Cart
+* Quantity changes
+* Item removal
+* Item discount
+* Overall discount
+* Customer selection
+* Cash
+* Card
+* Mobile banking
+* Bank transfer
+* Other payment
+* Paid amount
+* Due amount
+* Change amount
+
+USB barcode scanners generally behave like keyboard input, so support keyboard-based barcode entry.
+
+Prevent selling more stock than available unless an explicit configuration allows negative stock.
+
+Sale completion must happen safely and transactionally:
+
+```text
+Sale
+SaleItems
+Payment
+Stock update
+StockMovement
+```
+
+All related operations should succeed or fail together.
+
+---
+
+# Step 9 — Customers + Suppliers
+
+## Customers
+
+Create:
+
+```text
+Customer List
+Customer Details
+Customer Sales
+Customer Payments
+Customer Due
+```
+
+Fields:
+
+* Name
+* Phone
+* Email
+* Address
+* Opening due
+* Active status
+
+Show:
+
+```text
+Total Purchases
+Paid
+Due
+Payment History
+Sales History
+```
+
+## Suppliers
+
+Create:
+
+```text
+Supplier List
+Supplier Details
+Purchase History
+Payment History
+Due
+```
+
+Fields:
+
+* Name
+* Phone
+* Email
+* Address
+* Opening due
+* Active status
+
+---
+
+# Step 10 — Expenses
+
+Create expense management.
+
+Categories:
+
+```text
+Rent
+Salary
+Electricity
+Internet
+Transport
+Marketing
+Maintenance
+Other
+```
+
+Expense fields:
+
+* Title
+* Description
+* Category
+* Amount
+* Payment method
+* Date
+* User
+
+Support:
+
+* Create expense
+* Edit expense
+* Delete/deactivate where appropriate
+* Search
+* Filter by category
+* Filter by date
+* Expense history
+
+Expenses must be included in profit calculations.
+
+---
+
+# Step 11 — Invoices + Receipts
+
+Create one common invoice data structure.
+
+Use separate print templates:
+
+```text
+Sale Data
+   ├── A4 Invoice
+   ├── 80mm Thermal Receipt
+   └── 58mm Thermal Receipt
+```
+
+Support:
+
+* A4 invoice
+* 58mm receipt
+* 80mm receipt
+* Print
+* Reprint
+* Save as PDF
+
+Invoice should contain:
+
+* Shop logo
+* Shop name
+* Address
+* Phone
+* Invoice number
+* Date/time
+* Cashier
+* Customer
+* Products
+* SKU
+* Barcode where appropriate
+* Quantity
+* Unit price
+* Discount
+* Subtotal
+* Total
+* Paid
+* Due
+* Change
+* Payment method
+* Footer
+
+Receipt format should be configurable from Settings.
+
+---
+
+# Step 12 — Reports
+
+Create reporting modules.
+
+## Sales Reports
+
+```text
+Today
+Yesterday
+This Week
+This Month
+Custom Date Range
+```
+
+Show:
+
+* Total sales
+* Number of sales
+* Paid
+* Due
+* Discounts
+* Returns
+
+## Purchase Reports
+
+Show:
+
+* Total purchases
+* Purchase count
+* Paid
+* Due
+
+## Profit Reports
+
+Calculate correctly:
+
+```text
+Sales Revenue
+- Cost of Goods Sold
+- Discounts where applicable
+- Expenses
+= Net Profit
+```
+
+Do not calculate profit simply as:
+
+```text
+Selling Price - Purchase Price
+```
+
+when transaction history requires proper cost calculations.
+
+## Stock Reports
+
+Show:
+
+* Current stock
+* Low stock
+* Stock valuation
+* Stock movement
+* Damaged stock
+* Purchased quantity
+* Sold quantity
+* Returned quantity
+
+## Due Reports
+
+Show:
+
+```text
+Customer Due
+Supplier Due
+```
+
+Use Recharts for useful visual reports.
+
+---
+
+# Step 13 — Settings
+
+Create Settings.
+
+## Shop Information
+
+```text
+Shop Name
+Address
+Phone
+Email
+Logo
+```
+
+## Receipt Settings
+
+```text
+Default Receipt Format
+A4
+58mm
+80mm
+```
+
+## Invoice Settings
+
+```text
+Invoice Prefix
+Starting Invoice Number
+```
+
+## Product Settings
+
+```text
+SKU settings
+Barcode settings
+Minimum stock behavior
+```
+
+## System Settings
+
+```text
+Currency
+Date format
+Backup location
+```
+
+Keep settings persistent in the local database or appropriate local configuration.
+
+---
+
+# Step 14 — Backup + Restore
+
+Because this is an offline application, backup is critical.
+
+Implement:
+
+```text
+Backup Database
+      ↓
+Select Location
+      ↓
+Create Backup File
+```
+
+Example:
+
+```text
+shoe-shop-backup-2026-09-07.db
+```
+
+Restore:
+
+```text
+Restore Database
+      ↓
+Select Backup
+      ↓
+Validate Backup
+      ↓
+Replace Database Safely
+      ↓
+Restart Application
+```
+
+Do not corrupt the current database if a restore fails.
+
+Also consider:
+
+* Automatic backup
+* Backup history
+* Backup confirmation
+* Restore confirmation
+
+---
+
+# Step 15 — Windows EXE
+
+After all functionality is complete:
+
+Configure electron-builder.
+
+Build:
+
+```text
+React
+  ↓
+Vite Build
+  ↓
+Electron Package
+  ↓
+electron-builder
+  ↓
+Windows Installer
+```
+
+Final result:
+
+```text
+Shoe-Shop-Management-Setup.exe
+```
+
+The installed application must work without requiring:
+
+* Node.js
+* npm
+* Prisma CLI
+* VS Code
+* Internet
+* External database server
+
+Everything required for normal operation must be packaged with the application.
+
+---
+
+# Important Architecture Rules
+
+Follow these rules throughout the entire project.
+
+### 1. No backend server
+
+Do NOT create:
+
+```text
+Express
+Fastify
+NestJS
+```
+
+Electron main process handles backend-like operations.
+
+### 2. No cloud database
+
+Do NOT use:
+
+```text
+MongoDB
+PostgreSQL server
+MySQL
+Firebase
+Supabase
+```
+
+Use:
+
+```text
+SQLite + Prisma
+```
+
+### 3. Secure Electron
+
+Use:
+
+```ts
+contextIsolation: true
+nodeIntegration: false
+```
+
+Use `contextBridge` and IPC.
+
+### 4. Database access
+
+React must never do:
+
+```ts
+import { PrismaClient } from "@prisma/client";
+```
+
+All Prisma operations belong to Electron's main process.
+
+### 5. Transactions
+
+Sales, purchases, payments, and stock changes must use database transactions where appropriate.
+
+For example:
+
+```text
+Complete Sale
+ ├── Create Sale
+ ├── Create Sale Items
+ ├── Create Payment
+ ├── Decrease Stock
+ └── Create Stock Movements
+```
+
+Either everything succeeds or the transaction rolls back.
+
+### 6. Don't over-engineer
+
+This is an **offline single-shop desktop application**.
+
+Do not add unnecessary:
+
+* Microservices
+* REST APIs
+* Cloud infrastructure
+* Redis
+* WebSockets
+* Kubernetes
+* Docker
+* External authentication services
+
+Keep the architecture simple, reliable, and maintainable.
+
+### 7. UI
+
+Use:
+
+* Tailwind CSS
+* shadcn/ui
+* Lucide React
+
+Avoid creating unnecessary custom UI components when shadcn/ui already provides the component.
+
+### 8. Code quality
+
+Use:
+
+* TypeScript
+* Strong typing
+* Reusable components
+* Clean folder structure
+* Clear service boundaries
+* Proper error handling
+* Loading states
+* Empty states
+* Confirmation dialogs for destructive actions
+* Form validation
+
+### 9. Development discipline
+
+Implement **one step at a time**.
+
+Do not jump ahead.
+
+After completing each step:
+
+1. Run the application.
+2. Test the functionality.
+3. Fix errors.
+4. Confirm the step works.
+5. Only then continue to the next step.
+
+Do not modify working features unnecessarily when implementing a new step.
+
+---
+
+# Final Target Architecture
+
+```text
+┌──────────────────────────────────────────┐
+│              React Renderer              │
+│                                          │
+│ Dashboard                                │
+│ Products                                 │
+│ Stock                                    │
+│ Purchases                                │
+│ POS                                      │
+│ Customers                                │
+│ Suppliers                                │
+│ Expenses                                 │
+│ Reports                                  │
+│ Settings                                 │
+└──────────────────┬───────────────────────┘
+                   │
+                   │ Electron IPC
+                   ↓
+┌──────────────────────────────────────────┐
+│          Electron Main Process           │
+│                                          │
+│ IPC Handlers                             │
+│ Business Logic                           │
+│ Printing                                 │
+│ Backup / Restore                         │
+│ File System                              │
+│ Prisma                                   │
+└──────────────────┬───────────────────────┘
+                   │
+                   ↓
+┌──────────────────────────────────────────┐
+│                 SQLite                   │
+│                                          │
+│ Products                                 │
+│ Variants                                 │
+│ Stock                                    │
+│ Purchases                                │
+│ Sales                                    │
+│ Customers                                │
+│ Suppliers                                │
+│ Payments                                 │
+│ Expenses                                 │
+│ Reports                                  │
+└──────────────────────────────────────────┘
+```
+
+Start with **Step 1 — Electron Setup** only.
+
+Do not implement the entire application in one step. First make Electron + Vite + React work correctly, then proceed sequentially through the remaining steps.

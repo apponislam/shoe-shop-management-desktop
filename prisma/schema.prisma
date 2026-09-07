@@ -1,0 +1,493 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/* =========================
+   ENUMS
+========================= */
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CASHIER
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_BANKING
+  BANK_TRANSFER
+  OTHER
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum SaleStatus {
+  COMPLETED
+  RETURNED
+  PARTIAL_RETURN
+  CANCELLED
+}
+
+enum PurchaseStatus {
+  RECEIVED
+  PARTIAL
+  CANCELLED
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  SALE_RETURN
+  PURCHASE_RETURN
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  DAMAGE
+  OPENING_STOCK
+}
+
+enum ExpenseCategory {
+  RENT
+  SALARY
+  ELECTRICITY
+  INTERNET
+  TRANSPORT
+  MARKETING
+  MAINTENANCE
+  OTHER
+}
+
+/* =========================
+   USER
+========================= */
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         UserRole @default(CASHIER)
+  isActive     Boolean  @default(true)
+
+  sales        Sale[]
+  purchases    Purchase[]
+  expenses     Expense[]
+  stockMoves   StockMovement[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/* =========================
+   CATEGORY
+========================= */
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+
+  products    Product[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+/* =========================
+   BRAND
+========================= */
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  description String?
+  isActive  Boolean   @default(true)
+
+  products  Product[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+/* =========================
+   SIZE
+========================= */
+
+model Size {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  sortOrder Int               @default(0)
+  isActive  Boolean           @default(true)
+
+  variants  ProductVariant[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+/* =========================
+   COLOR
+========================= */
+
+model Color {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  hexCode   String?
+  isActive  Boolean           @default(true)
+
+  variants  ProductVariant[]
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+/* =========================
+   PRODUCT
+========================= */
+
+model Product {
+  id          Int       @id @default(autoincrement())
+
+  name        String
+  description String?
+
+  sku         String?   @unique
+  image       String?
+
+  categoryId  Int
+  brandId     Int?
+
+  isActive    Boolean   @default(true)
+
+  category    Category  @relation(fields: [categoryId], references: [id])
+  brand       Brand?    @relation(fields: [brandId], references: [id])
+
+  variants    ProductVariant[]
+  saleItems   SaleItem[]
+  purchaseItems PurchaseItem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([name])
+}
+
+/* =========================
+   PRODUCT VARIANT
+   Example:
+   Nike Air Max
+   Black + Size 42
+========================= */
+
+model ProductVariant {
+  id            Int       @id @default(autoincrement())
+
+  productId     Int
+  sizeId        Int?
+  colorId       Int?
+
+  sku           String    @unique
+  barcode       String?   @unique
+
+  purchasePrice Decimal   @default(0)
+  sellingPrice  Decimal   @default(0)
+
+  stock         Int       @default(0)
+  minimumStock  Int       @default(0)
+
+  isActive      Boolean   @default(true)
+
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size          Size?     @relation(fields: [sizeId], references: [id])
+  color         Color?    @relation(fields: [colorId], references: [id])
+
+  saleItems     SaleItem[]
+  purchaseItems PurchaseItem[]
+  stockMoves    StockMovement[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([productId])
+  @@index([sizeId])
+  @@index([colorId])
+  @@index([barcode])
+}
+
+/* =========================
+   SUPPLIER
+========================= */
+
+model Supplier {
+  id          Int       @id @default(autoincrement())
+
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+
+  openingDue  Decimal   @default(0)
+
+  isActive    Boolean   @default(true)
+
+  purchases   Purchase[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([name])
+  @@index([phone])
+}
+
+/* =========================
+   CUSTOMER
+========================= */
+
+model Customer {
+  id          Int       @id @default(autoincrement())
+
+  name        String
+  phone       String?
+  email       String?
+  address     String?
+
+  openingDue  Decimal   @default(0)
+
+  isActive    Boolean   @default(true)
+
+  sales       Sale[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([name])
+  @@index([phone])
+}
+
+/* =========================
+   PURCHASE
+========================= */
+
+model Purchase {
+  id             Int             @id @default(autoincrement())
+
+  invoiceNumber  String          @unique
+
+  supplierId     Int
+  userId         Int
+
+  subtotal       Decimal         @default(0)
+  discount       Decimal         @default(0)
+  total          Decimal         @default(0)
+
+  paidAmount     Decimal         @default(0)
+  dueAmount      Decimal         @default(0)
+
+  status         PurchaseStatus  @default(RECEIVED)
+
+  supplier       Supplier        @relation(fields: [supplierId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+
+  items          PurchaseItem[]
+  payments       Payment[]
+
+  notes          String?
+
+  purchasedAt    DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([supplierId])
+  @@index([userId])
+  @@index([purchasedAt])
+}
+
+/* =========================
+   PURCHASE ITEM
+========================= */
+
+model PurchaseItem {
+  id          Int             @id @default(autoincrement())
+
+  purchaseId  Int
+  productId   Int
+  variantId   Int
+
+  quantity    Int
+  unitPrice   Decimal
+
+  total       Decimal
+
+  purchase    Purchase        @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product     Product         @relation(fields: [productId], references: [id])
+  variant     ProductVariant  @relation(fields: [variantId], references: [id])
+
+  @@index([purchaseId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+/* =========================
+   SALE
+========================= */
+
+model Sale {
+  id             Int             @id @default(autoincrement())
+
+  invoiceNumber  String          @unique
+
+  customerId     Int?
+  userId         Int
+
+  subtotal       Decimal         @default(0)
+  discount       Decimal         @default(0)
+  tax            Decimal         @default(0)
+  total          Decimal         @default(0)
+
+  paidAmount     Decimal         @default(0)
+  dueAmount      Decimal         @default(0)
+  changeAmount   Decimal         @default(0)
+
+  paymentMethod  PaymentMethod   @default(CASH)
+  paymentStatus  PaymentStatus   @default(PAID)
+  status         SaleStatus      @default(COMPLETED)
+
+  customer       Customer?       @relation(fields: [customerId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+
+  items          SaleItem[]
+  payments       Payment[]
+
+  notes          String?
+
+  soldAt         DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([customerId])
+  @@index([userId])
+  @@index([soldAt])
+  @@index([invoiceNumber])
+}
+
+/* =========================
+   SALE ITEM
+========================= */
+
+model SaleItem {
+  id          Int             @id @default(autoincrement())
+
+  saleId      Int
+  productId   Int
+  variantId   Int
+
+  quantity    Int
+  unitPrice   Decimal
+
+  discount    Decimal         @default(0)
+  total       Decimal
+
+  sale        Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product     Product         @relation(fields: [productId], references: [id])
+  variant     ProductVariant  @relation(fields: [variantId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+/* =========================
+   PAYMENT
+========================= */
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+
+  saleId         Int?
+  purchaseId     Int?
+
+  amount         Decimal
+  method         PaymentMethod @default(CASH)
+
+  reference      String?
+  notes          String?
+
+  sale           Sale?         @relation(fields: [saleId], references: [id])
+  purchase       Purchase?     @relation(fields: [purchaseId], references: [id])
+
+  paidAt         DateTime      @default(now())
+
+  @@index([saleId])
+  @@index([purchaseId])
+  @@index([paidAt])
+}
+
+/* =========================
+   STOCK MOVEMENT
+========================= */
+
+model StockMovement {
+  id          Int                @id @default(autoincrement())
+
+  variantId   Int
+  userId      Int
+
+  type        StockMovementType
+
+  quantity    Int
+
+  previousStock Int
+  newStock      Int
+
+  reference   String?
+  notes       String?
+
+  variant     ProductVariant     @relation(fields: [variantId], references: [id])
+  user        User               @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime           @default(now())
+
+  @@index([variantId])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+/* =========================
+   EXPENSE
+========================= */
+
+model Expense {
+  id          Int              @id @default(autoincrement())
+
+  title       String
+  description String?
+
+  category    ExpenseCategory   @default(OTHER)
+
+  amount      Decimal
+
+  paymentMethod PaymentMethod  @default(CASH)
+
+  userId      Int
+  user        User             @relation(fields: [userId], references: [id])
+
+  expenseDate DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([category])
+  @@index([expenseDate])
+  @@index([userId])
+}
