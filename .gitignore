@@ -45,6 +45,13 @@ Thumbs.db
 *.sln
 *.sw?
 
+# AI Assistant configs & skills
+.agents/
+.claude/
+.cursor/
+.devin/
+
+
 # Temporary files
 .tmp/
 scratch/
