@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Search, Layers, Tag, Ruler, Palette, Box } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 interface ProductsProps {
     currencySymbol: string;
 }
 
 export const Products: React.FC<ProductsProps> = ({ currencySymbol }) => {
+    const { toast } = useToast();
     const [activeSubTab, setActiveSubTab] = useState<"products" | "categories" | "brands" | "sizes" | "colors">("products");
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
@@ -84,7 +86,7 @@ export const Products: React.FC<ProductsProps> = ({ currencySymbol }) => {
 
     const handleCreateProduct = async () => {
         if (!newProductName.trim() || !newProductCategory) {
-            alert("Product Name and Category are required!");
+            toast.error("Product Name and Category are required!");
             return;
         }
 
@@ -100,9 +102,10 @@ export const Products: React.FC<ProductsProps> = ({ currencySymbol }) => {
             setShowAddProductModal(false);
             setNewProductName("");
             setNewProductSku("");
+            toast.success("Product created successfully!");
             loadData();
         } catch (err: any) {
-            alert(`Failed to save product: ${err.message || err}`);
+            toast.error(`Failed to save product: ${err.message || err}`);
         }
     };
 

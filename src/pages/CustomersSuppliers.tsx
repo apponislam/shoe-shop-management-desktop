@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Search, Phone, MapPin } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 interface CustomersSuppliersProps {
     currencySymbol: string;
 }
 
 export const CustomersSuppliers: React.FC<CustomersSuppliersProps> = ({ currencySymbol }) => {
+    const { toast } = useToast();
     const [customers, setCustomers] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -57,13 +59,18 @@ export const CustomersSuppliers: React.FC<CustomersSuppliersProps> = ({ currency
     };
 
     const handleSave = async () => {
-        if (!name.trim()) return;
+        if (!name.trim()) {
+            toast.error("Customer Name is required");
+            return;
+        }
 
         try {
             if (editingItem) {
                 await window.electronAPI.updateCustomer(editingItem.id, { name, phone, email, address, openingDue });
+                toast.success(`Customer "${name}" updated successfully`);
             } else {
                 await window.electronAPI.createCustomer({ name, phone, email, address, openingDue });
+                toast.success(`Customer "${name}" created successfully`);
             }
 
             setShowModal(false);
@@ -75,7 +82,7 @@ export const CustomersSuppliers: React.FC<CustomersSuppliersProps> = ({ currency
             setOpeningDue(0);
             loadData();
         } catch (err: any) {
-            alert(`Error saving customer: ${err.message || err}`);
+            toast.error(`Error saving customer: ${err.message || err}`);
         }
     };
 
@@ -83,9 +90,10 @@ export const CustomersSuppliers: React.FC<CustomersSuppliersProps> = ({ currency
         if (confirm(`Are you sure you want to delete customer "${name}"?`)) {
             try {
                 await window.electronAPI.deleteCustomer(id);
+                toast.success(`Customer "${name}" deleted`);
                 loadData();
             } catch (err: any) {
-                alert(`Failed to delete customer: ${err.message || err}`);
+                toast.error(`Failed to delete customer: ${err.message || err}`);
             }
         }
     };

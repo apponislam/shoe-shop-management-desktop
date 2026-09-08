@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Search, Barcode, Trash2, Plus, Minus, Printer, CheckCircle2, UserPlus, ShoppingCart } from "lucide-react";
+import { useToast } from "../components/Toast";
 
 interface POSProps {
     currencySymbol: string;
@@ -20,6 +21,7 @@ interface CartItem {
 }
 
 export const POS: React.FC<POSProps> = ({ currencySymbol }) => {
+    const { toast } = useToast();
     const [barcodeInput, setBarcodeInput] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export const POS: React.FC<POSProps> = ({ currencySymbol }) => {
 
     const handleCreateCustomerQuick = async () => {
         if (!newCustName.trim()) {
-            alert("Customer Name is required");
+            toast.error("Customer Name is required");
             return;
         }
         try {
@@ -65,8 +67,9 @@ export const POS: React.FC<POSProps> = ({ currencySymbol }) => {
             const custs = await window.electronAPI.getCustomers();
             setCustomers(custs || []);
             if (created) setSelectedCustomerId(created.id);
+            toast.success(`Customer "${newCustName}" added!`);
         } catch (err: any) {
-            alert(`Failed to add customer: ${err.message || err}`);
+            toast.error(`Failed to add customer: ${err.message || err}`);
         }
     };
 
@@ -108,7 +111,7 @@ export const POS: React.FC<POSProps> = ({ currencySymbol }) => {
                 addVariantToCart(variant);
                 setBarcodeInput("");
             } else {
-                alert(`No variant found with Barcode/SKU: ${barcodeInput}`);
+                toast.error(`No variant found with Barcode/SKU: ${barcodeInput}`);
             }
         } catch (err) {
             console.error("Barcode lookup failed:", err);
@@ -117,7 +120,7 @@ export const POS: React.FC<POSProps> = ({ currencySymbol }) => {
 
     const addVariantToCart = (variant: any) => {
         if (variant.stock <= 0) {
-            alert(`Stock unavailable for ${variant.product.name} (SKU: ${variant.sku})`);
+            toast.error(`Stock unavailable for ${variant.product.name} (SKU: ${variant.sku})`);
             return;
         }
 
